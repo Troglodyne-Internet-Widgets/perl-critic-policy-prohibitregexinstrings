@@ -111,32 +111,15 @@ holds a glob or a `sprintf` format is reported too.  Take the key out of
 
 ### violates
 
-## FUNCTIONS
-
-The steps of ["violates"](#violates), which take PPI elements and are not for a caller.
-
-### declared\_scalar
-
-`($quote)`.  The name of the one scalar that a declaration sets to the string `$quote` and
-to nothing else, as `my $re = '...';` does, or undef.
-
-### used\_as\_regex
-
-`($declaration, $name)`.  True when the block around the statement `$declaration` uses the scalar
-`$name` as a regular expression after it, as ["regex\_use"](#regex_use) says.
-
-### regex\_use
-
-`($node, $name)`.  True when the PPI element `$node` uses the scalar `$name` as a regular
-expression: interpolated into the expression of a match, a substitution or a
-`qr//`, and not into the replacement of a substitution; bound with `=~` or
-`!~`; or the first argument of `split`, with or without parentheses.
-
 # AUTHORS
 
 Current Maintainers:
 
 - George S. Baugh <george@troglodyne.net>
+
+# CONTRIBUTOR
+
+troglodyne-robot <trogbot@troglodyne.net>
 
 # COPYRIGHT AND LICENSE
 

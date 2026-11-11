@@ -118,14 +118,6 @@ Readonly::Scalar my $IN_BRACES => qr/\A \$ \{ ([^}]+) \} \z/xs;
 Readonly::Hash my %BINDING     => map { $_ => 1 } qw{ =~ !~ };
 Readonly::Hash my %REGEX_TOKEN => map { $_ => 1 } qw{ PPI::Token::Regexp::Match PPI::Token::Regexp::Substitute PPI::Token::QuoteLike::Regexp };
 
-# The line and the column of $node, which a closure is because a lexical sub
-# needs perl 5.26, and this distribution runs on 5.14.
-my $position = sub {
-    my ($node) = @_;
-    my $location = $node->location or return [ 0, 0 ];
-    return [ @{$location}[ 0, 1 ] ];
-};
-
 =head2 METHODS
 
 =head3 supported_parameters
@@ -174,23 +166,14 @@ sub violates {
         return $self->violation( sprintf( $DESC_KEY, $name ), $EXPL, $elem );
     }
 
-    my $name = declared_scalar($elem) // return;
-    return unless used_as_regex( $elem->statement, $name );
+    my $name = _declared_scalar($elem) // return;
+    return unless _used_as_regex( $elem->statement, $name );
     return $self->violation( sprintf( $DESC_VAR, $name ), $EXPL, $elem );
 }
 
-=head2 FUNCTIONS
-
-The steps of L</violates>, which take PPI elements and are not for a caller.
-
-=head3 declared_scalar
-
-C<($quote)>.  The name of the one scalar that a declaration sets to the string C<$quote> and
-to nothing else, as C<my $re = '...';> does, or undef.
-
-=cut
-
-sub declared_scalar {
+# The name of the one scalar that a declaration sets to the string $quote and
+# to nothing else, as a declaration of one lexical does, or undef.
+sub _declared_scalar {
     my ($quote) = @_;
 
     my $previous = $quote->sprevious_sibling;
@@ -204,39 +187,29 @@ sub declared_scalar {
     return $names[0];
 }
 
-=head3 used_as_regex
-
-C<($declaration, $name)>.  True when the block around the statement C<$declaration> uses the scalar
-C<$name> as a regular expression after it, as L</regex_use> says.
-
-=cut
-
-sub used_as_regex {
+# Whether the block around the statement $declaration uses the scalar $name
+# as a regular expression after it, as _regex_use says.
+sub _used_as_regex {
     my ( $declaration, $name ) = @_;
 
     my $scope = $declaration->parent or return;
-    my $from  = $position->($declaration);
+    my $from  = _position($declaration);
     my $found = $scope->find(
         sub {
             my ( undef, $node ) = @_;
-            my $at = $position->($node);
+            my $at = _position($node);
             return 0 if $at->[0] < $from->[0] || ( $at->[0] == $from->[0] && $at->[1] < $from->[1] );
-            return regex_use( $node, $name ) ? 1 : 0;
+            return _regex_use( $node, $name ) ? 1 : 0;
         }
     );
     return $found ? 1 : 0;
 }
 
-=head3 regex_use
-
-C<($node, $name)>.  True when the PPI element C<$node> uses the scalar C<$name> as a regular
-expression: interpolated into the expression of a match, a substitution or a
-C<qr//>, and not into the replacement of a substitution; bound with C<=~> or
-C<!~>; or the first argument of C<split>, with or without parentheses.
-
-=cut
-
-sub regex_use {
+# Whether the element $node uses the scalar $name as a regular expression:
+# interpolated into the expression of a match, a substitution or a qr//, and
+# not into the replacement of a substitution; bound with =~ or !~; or the first
+# argument of split, with or without parentheses.
+sub _regex_use {
     my ( $node, $name ) = @_;
 
     if ( $REGEX_TOKEN{ ref $node } ) {
@@ -260,6 +233,13 @@ sub regex_use {
     return unless $list && $list->isa('PPI::Structure::List');
     my $call = $list->sprevious_sibling;
     return $call && $call->isa('PPI::Token::Word') && $call->content eq 'split';
+}
+
+# The line and the column of $node.
+sub _position {
+    my ($node) = @_;
+    my $location = $node->location or return [ 0, 0 ];
+    return [ @{$location}[ 0, 1 ] ];
 }
 
 1;
