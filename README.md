@@ -111,6 +111,15 @@ holds a glob or a `sprintf` format is reported too.  Take the key out of
 
 ### violates
 
+# BUGS
+
+Please report any bugs or feature requests on the bugtracker website
+[https://github.com/Troglodyne-Internet-Widgets/perl-critic-policy-prohibitregexinstrings/issues](https://github.com/Troglodyne-Internet-Widgets/perl-critic-policy-prohibitregexinstrings/issues)
+
+When submitting a bug or request, please include a test-file or a
+patch to an existing test-file that illustrates the bug or desired
+feature.
+
 # AUTHORS
 
 Current Maintainers:
