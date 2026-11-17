@@ -59,6 +59,7 @@ check_table(
     'double quotes'           => [ 1, q{my $s = { pattern => "^x\$" };} ],
     'a string around a value' => [ 1, q{my $s = { pattern => "^$prefix-" };} ],
     'a string, then more'     => [ 1, q{my $s = { pattern => '^' . $x };} ],
+    'a string, then a qr//'   => [ 1, q{my $s = { pattern => "" . qr/\A[a-z]+\z/ };} ],
     'two in one hash'         => [ 2, q{my $s = { a => { pattern => '^x$' }, b => { regex => '^y$' } };} ],
 );
 

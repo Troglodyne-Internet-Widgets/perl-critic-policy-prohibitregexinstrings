@@ -58,6 +58,15 @@ C<regexp> by default, in a list of pairs:
     validate( value => $v, regex => q{\A\d+\z} )
     { 'regexp' => "^$prefix-" }
 
+A value that starts with a string is reported, whatever follows it.  So
+C<"" . qr//> is reported too.  It gives the same string as C<"$qr">, but the
+expression has no name.  Give the C<qr//> a name, and pass C<"$NAME">:
+
+    pattern => "" . qr/\A[a-z]+\z/      # reported
+
+    my $NAME = qr/\A[a-z]+\z/;
+    pattern => "$NAME"                  # allowed
+
 A lexical scalar declared with a string, and used as a regular expression in
 its scope: interpolated into a match, a substitution or a C<qr//>, bound with
 C<=~> or C<!~>, or given to C<split>:
