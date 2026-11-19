@@ -108,6 +108,11 @@ my $narrow = Perl::Critic->new( -profile => \"[RegularExpressions::ProhibitRegex
 is( scalar $narrow->critique( \q{my $s = { match_re => '^x$' };} ), 1, 'keys: a key that the configuration names' );
 is( scalar $narrow->critique( \q{my $s = { pattern => '^x$' };} ),  0, 'keys: replaces the default list' );
 
+my ($violation) = $critic->critique( \q{my $s = { pattern => '^[a-z]+$' };} );
+like( $violation->explanation, qr/only [ ] where [ ] Perl [ ] compiles/xs, 'the explanation limits "$qr" to a string that Perl compiles' ) or diag $violation->explanation;
+
+is( scalar $critic->critique( \qq{my \$s = {\n    pattern => '^[a-z]+\$',    ## no critic (ProhibitRegexInStrings) ECMA-262, read by the client\n};\n} ), 0, 'the no critic of the POD, naming the other engine, silences the line' );
+
 is( scalar( () = warnings { Perl::Critic->new( -profile => q{}, '-single-policy' => $POLICY ) } ), 0, 'nothing warns on construction' );
 
 done_testing();

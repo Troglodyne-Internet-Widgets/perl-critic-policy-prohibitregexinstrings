@@ -39,13 +39,39 @@ newline at the end, passes everything:
 =back
 
 Write the expression as C<qr//>, where the file and the policies can see it.
-Where a string is what the other end takes, give it the C<qr//> in a string.
-A compiled expression keeps its modifiers when it becomes one, as
-C<(?^aa:...)>:
+
+Where the other end takes a string, and Perl compiles that string, give it the
+C<qr//> in a string.  A compiled expression keeps its modifiers when it
+becomes one, as C<(?^aax:...)>.  JSON::Validator is such an end: it matches
+with C<$value =~ /$pattern/>.
 
     my $USER = qr/\A [[:lower:]_] [[:lower:][:digit:]_-]* \z/x;
     ...
     pattern => "$USER"
+
+Do not do this where another engine reads the string.  The string that
+C<"$USER"> gives is Perl syntax.  The C<pattern> of a JSON Schema is an
+ECMA-262 expression, and a JavaScript validator, an API that checks a schema,
+a tool that turns a schema into structured output, or OpenAPI tooling, refuses
+or misreads it: ECMA-262 has no C<(?^>, no C<\A> or C<\z>, and no POSIX class
+such as C<[[:lower:]]>.  One such tool answers "Invalid regular expression:
+unrecognized character after (?" and refuses the whole schema.  For a string
+that leaves Perl, do one of two things:
+
+=over 4
+
+=item * Keep the C<qr//> for Perl, and take C<pattern> out of the copy of the
+schema that goes to the other engine.  Perl still checks the value, and the
+other end gets no expression that it cannot read.
+
+=item * Write a string that both engines read the same way, and say on that
+line which engine it is for.  Use C<^>, C<$> and explicit classes, and keep in
+mind that C<$> in Perl also matches before a newline at the end, and in
+ECMA-262 it does not:
+
+    pattern => '^[a-z_][a-z0-9_-]*$',    ## no critic (ProhibitRegexInStrings) ECMA-262, read by the client
+
+=back
 
 This policy reports two kinds of string.
 
@@ -79,7 +105,7 @@ C<=~> or C<!~>, or given to C<split>:
 
 =head2 ALLOWED
 
-    pattern => "$USER"                  # a qr// in a string
+    pattern => "$USER"                  # a qr// in a string, for Perl
     pattern => "${USER}"
     pattern => qr/\A[a-z]+\z/
     name    => '^not a pattern$'        # a key that names no expression
@@ -114,7 +140,7 @@ C<keys> for such a code base.
 
 Readonly::Scalar my $DESC_KEY => q{Regular expression in a string, as the value of '%s'};
 Readonly::Scalar my $DESC_VAR => q{Regular expression in a string, in %s, which a match uses};
-Readonly::Scalar my $EXPL     => q{Write it as qr//, and give "$qr" where a string is needed};
+Readonly::Scalar my $EXPL     => q{Write it as qr//.  Give "$qr" only where Perl compiles the string; for another engine, such as ECMA-262 in a JSON Schema, see the POD};
 
 # A double-quoted string that holds one scalar and nothing else, which is how
 # a qr// becomes a string: "$name", "${name}" or "$Package::name".
