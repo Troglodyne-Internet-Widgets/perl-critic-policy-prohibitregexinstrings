@@ -84,6 +84,7 @@ dryrun
 DSN
 dzil
 ECDSA
+ECMA
 ENV
 env
 filehandle
@@ -109,6 +110,7 @@ INI
 init
 IPs
 IPv
+JavaScript
 JSON
 keypair
 keyspace
@@ -149,6 +151,7 @@ NONINFRINGEMENT
 NTP
 OAuth
 OOM
+OpenAPI
 overcommit
 overcommits
 overcommitted
