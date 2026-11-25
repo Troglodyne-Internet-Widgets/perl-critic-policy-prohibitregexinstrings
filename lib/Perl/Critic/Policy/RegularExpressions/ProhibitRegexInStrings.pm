@@ -155,13 +155,40 @@ Readonly::Hash my %REGEX_TOKEN => map { $_ => 1 } qw{ PPI::Token::Regexp::Match 
 
 =head2 METHODS
 
+What L<Perl::Critic::Policy> asks of a policy.
+
 =head3 supported_parameters
+
+C<keys>, as L</CONFIGURATION> describes it.
+
+Returns HashRef, the description of the parameter that Perl::Critic reads, as
+a list of one.
+
+    my ($keys) = $policy->supported_parameters;
 
 =head3 default_severity
 
+Medium.
+
+Returns Int, the C<$SEVERITY_MEDIUM> of L<Perl::Critic::Utils>.
+
+    my $severity = $policy->default_severity;
+
 =head3 default_themes
 
+C<bugs> and C<maintenance>.
+
+Returns the names of the themes, as a list.
+
+    my @themes = $policy->default_themes;
+
 =head3 applies_to
+
+A quoted string, of any kind.
+
+Returns Str, the class of PPI element.
+
+    my $class = $policy->applies_to;
 
 =cut
 
@@ -180,7 +207,21 @@ sub default_severity { return $SEVERITY_MEDIUM }
 sub default_themes   { return qw{ bugs maintenance } }
 sub applies_to       { return 'PPI::Token::Quote' }
 
-=head3 violates
+=head3 violates($elem)
+
+One violation for a string that L</PROHIBITED> describes.  Perl::Critic also
+passes the document, which the policy does not read.
+
+=over 4
+
+=item elem - InstanceOf["PPI::Token::Quote"] - the string
+
+=back
+
+Returns the violations, as a list: a L<Perl::Critic::Violation> when C<elem>
+is a regular expression in a string, and none otherwise.
+
+    my @violations = $policy->violates( $string, $document );
 
 =cut
 
